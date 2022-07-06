@@ -1,0 +1,10 @@
+anypoint:
+  platform:
+    client_id: "![/lE16zXbe8TPEif0yYySKoq0SldneFM9l67H8xH8JEHfDMrSY1QKRCWvED+odxMb]"
+    client_secret: "![nvLBrnsEHcY2JbhAIT2fKj9HTBVY0rD3n+y4vaKWU918f0lld+CF3yzFogB6ERAw]"
+    organizationId: "![/c9jsZI1Q2RillgW3I6kE/RuYlHOd9B2tZXvX7G1xx5UoC7ThqWcVvkQVJbgs2pz]"
+    environmentId: "![A5fJtdXq5OPOPnGq4UX8c4+jskfIM/Xcx9xECX3XQT6HB9AAU3YLV+oiVTDeUw/l]"
+
+s3:
+  accessKey: "![nh9F5Z9dYrGjg0wGMZlX208L7QmZ2KHAA+546qAS8nM=]"
+  secretKey: "![XfbnuADJl0PuUtvFE81ZZrtF0DMb0e+9C7GtbKi+vzTKV/fcodJ0xseOAxU+rUbE]"

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd">
+	<flow name="logs-to-s3" doc:id="5df67d08-213c-4905-823c-79f3f395e161" >
+		<scheduler doc:name="Scheduler" doc:id="80d0c94b-ac43-4afb-a562-eaab9a26edbb" >
+			<scheduling-strategy >
+				<cron expression="${scheduler.cron}"/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="START" doc:id="05ca8b1a-8140-4984-ae4d-7875d9d5d397" message="Start Log Download"/>
+		<flow-ref doc:name="initialise" doc:id="41b8f939-20e4-4bf4-ae17-f1f340975e15" name="initialise"/>
+		<http:request method="GET" doc:name="Obtain entity list" doc:id="8e74d0e8-2e27-4b42-be92-7afb4b098467" config-ref="monitoring-request" path="/monitoring/archive/api/v1/organizations/{organization}/environments/{environment}/applications">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ vars.token
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"organization" : vars.organization,
+	"environment" : vars.environment
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Filter entities" doc:id="9bd44f64-07fe-4318-968b-aae161e37600" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable resource="dwl/filter-entities.dwl" variableName="entities" />
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="iterate-entities" doc:id="c6d75d67-21bb-4b2f-9825-266bd2d9750e" name="iterate-entities"/>
+		<logger level="INFO" doc:name="END" doc:id="0ab4b497-eac3-4e7b-9980-b0ed4115f731" message="End Log Download"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7be70c9f-9f41-43c2-8bda-7e9641acd865" >
+				<logger level="INFO" doc:name="Logger" doc:id="ce4db48c-b4bc-4fb9-9bf5-8dbbfca78f7e" message="#[error.detailedDescription]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<sub-flow name="iterate-entities" doc:id="ed8ce68a-841e-4969-92d4-503fef5fb541" >
+		<foreach doc:name="For Each" doc:id="2fa70ff0-ab09-4e7c-8407-bd74ab7cad40" collection="#[vars.entities]">
+			<set-variable value="#[payload.id]" doc:name="Set Entity" doc:id="31e4642a-fb57-407b-a3ec-550dc335e323" variableName="entity"/>
+			<http:request method="GET" doc:name="Obtain log list" doc:id="a010dd90-1141-45a9-9b4b-43a3925fcd0a" path="/monitoring/archive/api/v1/organizations/{organization}/environments/{environment}/applications/{application}/logs/{year}/{month}/{day}" config-ref="monitoring-request" target="logParts" targetValue="#[payload.resources]">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ vars.token
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"organization" : vars.organization,
+	"month" : vars.month,
+	"day" : vars.day,
+	"application" : vars.entity,
+	"environment" : vars.environment,
+	"year" : vars.year
+}]]]></http:uri-params>
+		</http:request>
+			<foreach doc:name="For Each" doc:id="dd309a61-dd4b-44a8-898e-9fb303fefa78" collection="#[vars.logParts]">
+				<set-variable value="#[payload.id]" doc:name="Set Log Part" doc:id="70300748-51a5-4d47-9960-82f7a40e12da" variableName="logPart"/>
+				<set-variable value="#[payload.size]" doc:name="Set Log Size" doc:id="d700e33e-35d6-4520-af50-a5a6069059b8" variableName="logSize"/>
+				<http:request method="GET" doc:name="get-log-part" doc:id="fcbe655d-7d91-4c9b-b8a5-260886caf34d" config-ref="monitoring-request" path="/monitoring/archive/api/v1/organizations/{organization}/environments/{environment}/applications/{application}/logs/{year}/{month}/{day}/{part}">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ vars.token
+}]]]></http:headers>
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"organization" : vars.organization,
+	"month" : vars.month,
+	"part" : vars.logPart,
+	"day" : vars.day,
+	"application" : vars.entity,
+	"environment" : vars.environment,
+	"year" : vars.year
+}]]]></http:uri-params>
+			</http:request>
+				<flow-ref doc:name="upload-to-s3" doc:id="4f8b76c9-e449-472f-ae6d-4aa8b1d94e6c" name="upload-to-s3" />
+				<logger level="INFO" doc:name="Logger" doc:id="4e1c4aee-6ab5-4578-a4c7-ddea8038209c" message='#["Uploaded [" ++ vars.logPart ++ "] to S3"]'/>
+		</foreach>
+		</foreach>
+	</sub-flow>
+	<sub-flow name="upload-to-s3" doc:id="10615d89-9a87-4769-8741-2b585a4a8105" >
+		<s3:create-object doc:name="Create object" doc:id="a3582840-ca6f-4c6e-aae3-c41fb2a68a46" config-ref="Amazon_S3_Configuration" bucketName="${s3.bucket}" key='#[vars.year ++ "-" ++ vars.month ++ "-" ++ vars.day ++ "/" ++ vars.logPart]' contentLength="#[vars.logSize]">
+			<reconnect />
+		</s3:create-object>
+	</sub-flow>
+</mule>

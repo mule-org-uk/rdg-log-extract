@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd">
+	<global-property doc:name="Global Property" doc:id="7b786e91-1fb6-4c8b-9cd4-6110b365693a" name="mule.env" value="dev" />
+	<global-property doc:name="Global Property" doc:id="7ccd19c8-607a-4ba0-a1f9-b11282d8aece" name="mule.key" value="thisshouldbeakey" />
+	<configuration-properties doc:name="Configuration properties" doc:id="48faae0a-2357-4c0d-b537-a0dcb5c71fb0" file="properties/config-${mule.env}.yaml" />
+	<http:request-config name="oauth-request" doc:name="HTTP Request configuration" doc:id="1ce5b908-4829-44f8-9866-e2e6f296ae62" >
+		<http:request-connection protocol="HTTPS" host="${anypoint.platform.url}" port="${anypoint.platform.port}"/>
+	</http:request-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="2ed83e97-6941-48ed-b208-dc0a26666d4d" file="properties/secure-${mule.env}.yaml" key="${mule.key}"/>
+	<http:request-config name="monitoring-request" doc:name="HTTP Request configuration" doc:id="8caef028-0bcf-41b5-a8f9-5d08dbb66b07" >
+		<http:request-connection protocol="HTTPS" host="${anypoint.platform.monitoring.url}" port="${anypoint.platform.port}" />
+	</http:request-config>
+	<s3:config name="Amazon_S3_Configuration" doc:name="Amazon S3 Configuration" doc:id="459a8980-bc4a-44ed-9896-cf1852540d88" >
+		<s3:basic-connection accessKey="${secure::s3.accessKey}" secretKey="${secure::s3.secretKey}" region="EU_WEST_2" />
+	</s3:config>
+</mule>

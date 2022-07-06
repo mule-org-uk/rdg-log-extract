@@ -1,0 +1,13 @@
+anypoint:
+  platform:
+    url: "anypoint.mulesoft.com"
+    port: "443"
+    applications: "ext-rdg-rsvns-ea-v1-acc.ir-e1.cloudhub.io,rdg-rsvns-bookings-pa-v1-acc.ir-e1.cloudhub.io"
+    monitoring:
+      url: "monitoring.anypoint.mulesoft.com"
+
+scheduler:
+  cron: "0 0 2 ? * * *"
+
+s3:
+  bucket: "mule-poc-cajhughes"

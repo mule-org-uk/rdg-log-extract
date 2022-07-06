@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="initialise" doc:id="0f005d49-560c-4926-b186-50e64d34943f" >
+		<flow-ref doc:name="get-application-parameters" doc:id="d9e606a2-9406-4743-90d6-019a99857b94" name="get-application-parameters"/>
+		<flow-ref doc:name="get-date-parameters" doc:id="0e407ad2-a700-44b4-8b28-24929c4253f4" name="get-date-parameters"/>
+		<ee:transform doc:name="Transform Message" doc:id="d1890d55-eff2-4d5f-a56f-eb39391ffc39" >
+			<ee:message >
+				<ee:set-payload resource="dwl/set-oauth-body.dwl" />
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Get Access Token" doc:id="995aca14-0afe-4d71-a0ba-4182f725f0f4" config-ref="oauth-request" path="/accounts/api/v2/oauth2/token"/>
+		<set-variable value="#[payload.access_token]" doc:name="Store Access Token" doc:id="2d540dc1-0ee1-4ed5-a096-1967e2bb517c" variableName="token"/>
+	</sub-flow>
+	<sub-flow name="get-date-parameters" doc:id="f4c70e61-b564-42eb-aaa6-8344b491701c" >
+		<ee:transform doc:name="Transform Message" doc:id="05901ed6-a2d9-4eaf-a737-004347648e28" >
+			<ee:message >
+				<ee:set-payload resource="dwl/set-yesterday.dwl" />
+			</ee:message>
+		</ee:transform>
+		<set-variable value='#[payload.year]' doc:name="set year" doc:id="5c924fa5-0370-4ac4-964b-9848a5285fc6" variableName="year" />
+		<set-variable value='#[payload.month]' doc:name="set month" doc:id="478b39c7-b228-4789-bd45-70439e1f0b3a" variableName="month" />
+		<set-variable value='#[payload.day]' doc:name="set day" doc:id="bf434b9e-227b-4a30-a34c-b267927c283c" variableName="day" />
+	</sub-flow>
+	<sub-flow name="get-application-parameters" doc:id="93ccdfbf-1c03-4a3d-b545-0f63b2faba5e" >
+		<set-variable value="#[p('secure::anypoint.platform.organizationId')]" doc:name="Set Organization ID" doc:id="196a818a-22c7-4cf3-9b26-05653cc90094" variableName="organization"/>
+		<set-variable value="#[p('secure::anypoint.platform.environmentId')]" doc:name="Set Environment ID" doc:id="41d853bd-5489-4261-8733-31d5675111ba" variableName="environment"/>
+		<set-variable value="#[p('anypoint.platform.applications')]" doc:name="Set Application URL" doc:id="c2a1266d-5b7e-422c-9303-bc398bfe6e64" variableName="applications"/>
+	</sub-flow>
+</mule>
